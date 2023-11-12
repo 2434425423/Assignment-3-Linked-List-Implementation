@@ -1,0 +1,92 @@
+
+#include <iostream>
+#include <map>
+
+// Forward declaration
+class SparseMatrix;
+
+// Node structure for non-zero elements
+class Node {
+public:
+    int row, column, value;
+    Node *next;
+
+    Node(int r, int c, int v) : row(r), column(c), value(v), next(nullptr) {}
+
+    friend class SparseMatrix;
+};
+
+// Class to manage the list of non-zero elements
+class NodeList {
+private:
+    Node *head;
+public:
+    NodeList() : head(nullptr) {}
+
+    // Insert a node in sorted order
+    void insertNode(int row, int column, int value) {
+        Node **walker = &head;
+        while (*walker && (*walker)->column < column) {
+            walker = &((*walker)->next);
+        }
+        Node *newNode = new Node(row, column, value); // Corrected line
+        newNode->next = *walker; // Corrected line
+        *walker = newNode; // Corrected line
+    }
+
+    // Display the list
+    void display() {
+        Node *current = head;
+        while (current) {
+            std::cout << "(" << current->row << ", " << current->column << ", " << current->value << ") ";
+            current = current->next;
+        }
+    }
+
+    ~NodeList() {
+        while (head) {
+            Node *temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+};
+
+// SparseMatrix class to handle the linked list
+class SparseMatrix {
+private:
+    std::map<int, NodeList> rows;
+    int maxRow, maxCol;
+
+public:
+    SparseMatrix(int maxRow, int maxCol) : maxRow(maxRow), maxCol(maxCol) {}
+
+    void insert(int row, int column, int value) {
+        if (value == 0 || row >= maxRow || column >= maxCol) {
+            return; // Ignore zero values and invalid positions
+        }
+        rows[row].insertNode(row, column, value);
+    }
+
+    void display() {
+        for (auto &row : rows) {
+            row.second.display();
+        }
+        std::cout << std::endl;
+    }
+};
+
+int main() {
+    // Create a new Sparse Matrix with dimensions 4x5
+    SparseMatrix sparseMatrix(4, 5);
+
+    // Insert some non-zero elements
+    sparseMatrix.insert(0, 1, 7);
+    sparseMatrix.insert(2, 3, 8);
+    sparseMatrix.insert(3, 0, 9);
+
+    // Display the matrix
+    sparseMatrix.display();
+
+    return 0;
+}
